@@ -2,27 +2,29 @@ spring:
     application:
         name: msa4-meerkatgram
     web:
-            error:
-                include-stacktrace: always
-            
-        # MySQL
-        datasource:
-            url: jdbc:mysql://localhost:3306/dbsample
-            username: root
-            password: msa4505
-            driver-class-name: com.mysql.cj.jdbc.Driver
-            
-    # MyBatis
-    mybatis:
-        mapper-locations: classpath:mapper/*.xml
-        type-aliases-package: com.msa4spring
-                
-    logging:
-        file:
-            # 로그 파일 경로
-            name: logs/error.log
-        level:
-            # 로그 출력 레벨 설정 (trace, debug, info, warn, error)
-            root: error
-            
-            com.msa4spring.controllers: debug
+        error:
+            include-stacktrace: always
+    
+    # MySQL(DB)
+    datasource:
+        url: jdbc:mysql://localhost:3306/meerkatgram
+        username: root
+        password: msa4505
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+# MyBatis
+mybatis:
+    mapper-locations: classpath:mapper/**/*.xml
+    type-aliases-package: com.msa4-meerkatgram
+
+# Log
+logging:
+    file:
+        # 로그 파일 경로
+        name: logs/error.log
+    level:
+        # 로그 출력 레벨 설정 (trace, debug, info, warn, error)
+        root: error
+        
+        # 특정 패키지만 로그 출력 레벨 설정
+        com.msa4-meerkatgram.controllers: debug
