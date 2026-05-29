@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
-
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -42,6 +41,8 @@ public class CookieManager {
         cookie.setHttpOnly(true);
         // 시큐어 설정 (MITM 공격 방지)
         cookie.setSecure(jwtConfig.secure());
+        // 쿠키 추가
+        response.addCookie(cookie);
     }
 }
 

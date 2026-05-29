@@ -4,10 +4,10 @@ import com.msa4meerkatgram.domain.auth.requests.LoginReq;
 import com.msa4meerkatgram.domain.auth.responses.AuthRes;
 import com.msa4meerkatgram.domain.auth.services.AuthService;
 import com.msa4meerkatgram.global.responses.GlobalResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,9 +22,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<GlobalResponse<AuthRes>> login(
-        @Valid @RequestBody LoginReq loginReq,
-        HttpServletResponse response
+        @Valid @RequestBody LoginReq loginReq
+        , HttpServletResponse response
     ) {
+
         return ResponseEntity.status(200).body(
             GlobalResponse.<AuthRes>builder()
                 .code("00")
@@ -33,4 +34,19 @@ public class AuthController {
                 .build()
         );
     }
+
+    @PostMapping("/reissue-token")
+    public ResponseEntity<GlobalResponse<AuthRes>> reissue(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
+        return ResponseEntity.status(200).body(
+            GlobalResponse.<AuthRes>builder()
+                .code("00")
+                .message("토큰 재발급 완료")
+                .data(authService.reissue(request, response))
+                .build()
+        );
+    }
+
 }
