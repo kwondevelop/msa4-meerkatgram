@@ -11,6 +11,12 @@ spring:
         username: root
         password: msa4505
         driver-class-name: com.mysql.cj.jdbc.Driver
+    graphql:
+        cors:
+            allow-credentials:
+            allowed-headers:
+            allowed-origins: ["http://localhost:5173"]
+            max-age: 3600
 
 # MyBatis
 mybatis:

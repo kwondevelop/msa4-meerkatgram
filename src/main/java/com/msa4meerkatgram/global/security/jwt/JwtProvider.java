@@ -75,6 +75,21 @@ public class JwtProvider {
             .map(Cookie::getValue);
     }
 
+    /**
+     * 
+     * @param request
+     * @return
+     */
+    
+    public Optional<String> extractAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(jwtConfig.headerKey());
+        
+        if(bearerToken == null || !bearerToken.startsWith(jwtConfig.scheme())) {
+            return Optional.empty();
+        }
+        return Optional.of(bearerToken.substring(jwtConfig.scheme().length()).trim());
+    }
+
     // 토큰 검증 및 클레임 추출
     public Claims extractClaims(String token) {
         try {
