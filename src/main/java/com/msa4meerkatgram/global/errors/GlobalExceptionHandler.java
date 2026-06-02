@@ -1,5 +1,6 @@
 package com.msa4meerkatgram.global.errors;
 
+import com.msa4meerkatgram.global.errors.custom.DeletedRecordException;
 import com.msa4meerkatgram.global.errors.custom.InvalidTokenException;
 import com.msa4meerkatgram.global.errors.custom.NotRegisteredException;
 import com.msa4meerkatgram.global.responses.GlobalResponse;
@@ -73,6 +74,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(DeletedRecordException.class)
+    public ResponseEntity<GlobalResponse<String>> deletedRecordHandle(DeletedRecordException e) {
+        return ResponseEntity.status(404).body(
+            GlobalResponse.<String>builder()
+                .code("E10")
+                .message("DELETED_RECORD_ERROR")
+                .data(e.getMessage())
+                .build()
+        );
+    }
+    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<GlobalResponse<List<String>>> methodArgumentNotValidException(
         MethodArgumentNotValidException e
