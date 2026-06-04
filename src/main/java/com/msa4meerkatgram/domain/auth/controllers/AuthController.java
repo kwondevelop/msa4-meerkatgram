@@ -1,6 +1,7 @@
 package com.msa4meerkatgram.domain.auth.controllers;
 
 import com.msa4meerkatgram.domain.auth.requests.LoginReq;
+import com.msa4meerkatgram.domain.auth.requests.RegistrationReq;
 import com.msa4meerkatgram.domain.auth.responses.AuthRes;
 import com.msa4meerkatgram.domain.auth.services.AuthService;
 import com.msa4meerkatgram.global.responses.GlobalResponse;
@@ -64,6 +65,20 @@ public class AuthController {
             GlobalResponse.<String>builder()
                 .code("00")
                 .message("로그아웃 완료")
+                .build()
+        );
+    }
+
+    @PostMapping("/registration")
+    public ResponseEntity<GlobalResponse<String>> registration(
+        @Valid @RequestBody RegistrationReq registrationReq
+    ) {
+        authService.registration(registrationReq);
+
+        return ResponseEntity.status(200).body(
+            GlobalResponse.<String>builder()
+                .code("00")
+                .message("회원가입 완료")
                 .build()
         );
     }
