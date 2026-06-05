@@ -53,8 +53,8 @@ security:
 file:
     server-uri: http://localhost:8080
     storage-path: E:/mj-msa4/workspace/msa4-meerkatgram/storage
-    profile-path: /images/profiles
-    post-path: /images/posts
+    profile-path: /files/profiles
+    post-path: /files/posts
     allow-extension-list: [
         "image/jpg",
         "image/jpeg",
