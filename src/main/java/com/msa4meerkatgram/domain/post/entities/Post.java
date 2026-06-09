@@ -1,10 +1,12 @@
 package com.msa4meerkatgram.domain.post.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Post {
     private Long id;
     private Long userId;
@@ -13,4 +15,6 @@ public class Post {
     private String createdAt;
     private String updatedAt;
     private String deletedAt;
+    private String postContent;
+    private String postImageUrl;
 }

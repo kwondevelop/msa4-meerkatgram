@@ -7,8 +7,8 @@
     <resultMap id="postResultMap" type="com.msa4meerkatgram.domain.post.entities.Post">
         <id column="id" property="id" />
         <result column="user_id" property="userId" />
-        <result column="content" property="content" />
-        <result column="image" property="image" />
+        <result column="content" property="postContent" />
+        <result column="image" property="postImageUrl" />
         <result column="created_at" property="createdAt" />
         <result column="updated_at" property="updatedAt" />
         <result column="deleted_at" property="deletedAt" />
@@ -50,4 +50,15 @@
                 deleted_at IS NULL
             AND user_id = #{userId}
     </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO posts (
+            user_id,
+            content,
+            image
+        ) VALUES (
+                     #{userId},
+                     #{postContent},
+                     #{postImageUrl}
+                 )
+    </insert>
 </mapper>
