@@ -1,6 +1,6 @@
 package com.msa4meerkatgram.domain.post.controllers;
 
-import com.msa4meerkatgram.domain.post.entities.Post;
+import com.msa4meerkatgram.domain.post.entities.PostMybatis;
 import com.msa4meerkatgram.domain.post.requests.PostCreateRequest;
 import com.msa4meerkatgram.domain.post.requests.PostIndexRequest;
 import com.msa4meerkatgram.domain.post.responses.PostIndexResponse;
@@ -37,13 +37,13 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id}")
-    public ResponseEntity<GlobalResponse<Post>> show (
+    public ResponseEntity<GlobalResponse<PostMybatis>> show (
         @Min(value = 1, message = "1 이상의 숫자만 허용합니다") @PathVariable long id
     ) {
-        Post result = postService.show(id);
+        PostMybatis result = postService.show(id);
 
         return ResponseEntity.status(200).body(
-            GlobalResponse.<Post>builder()
+            GlobalResponse.<PostMybatis>builder()
                 .code("00")
                 .message("게시글 상세 정상 처리")
                 .data(result)

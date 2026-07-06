@@ -1,14 +1,12 @@
 package com.msa4meerkatgram.domain.post.services;
 
-import com.msa4meerkatgram.domain.post.entities.Post;
+import com.msa4meerkatgram.domain.post.entities.PostMybatis;
 import com.msa4meerkatgram.domain.post.mapper.PostMapper;
 import com.msa4meerkatgram.domain.post.requests.PostCreateRequest;
 import com.msa4meerkatgram.domain.post.requests.PostIndexRequest;
 import com.msa4meerkatgram.domain.post.responses.PostIndexResponse;
 import com.msa4meerkatgram.global.errors.custom.DeletedRecordException;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.javassist.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +21,7 @@ public class PostService {
         int offset = (postIndexRequest.page() - 1) * postIndexRequest.limit();
             
         // 특정 페이지 게시글 조회
-        List<Post> posts = postMapper.getPagination(postIndexRequest.limit(), offset);
+        List<PostMybatis> posts = postMapper.getPagination(postIndexRequest.limit(), offset);
         
         // 토탈 획득
         long total = postMapper.getTotal();
@@ -37,8 +35,8 @@ public class PostService {
             .build();
     }
     
-    public Post show(long id) {
-        Post post = postMapper.findByPk(id);
+    public PostMybatis show(long id) {
+        PostMybatis post = postMapper.findByPk(id);
         
         if (post == null) {
             throw new DeletedRecordException("이미 삭제된 게시글입니다");
@@ -48,7 +46,7 @@ public class PostService {
     
     @Transactional
     public void createPost(PostCreateRequest request, Long userId) {
-        Post post = Post.builder()
+        PostMybatis post = PostMybatis.builder()
             .userId(userId)
             .postContent(request.getPostContent())
             .postImageUrl(request.getPostImageUrl())
