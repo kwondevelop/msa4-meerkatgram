@@ -1,8 +1,8 @@
 package com.msa4meerkatgram.domain.file.controllers;
 
-import com.msa4meerkatgram.domain.file.responses.FileResponse;
+import com.msa4meerkatgram.domain.file.responses.FileRes;
 import com.msa4meerkatgram.domain.file.services.FileService;
-import com.msa4meerkatgram.global.responses.GlobalResponse;
+import com.msa4meerkatgram.global.responses.GlobalRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,24 +18,24 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/files/profiles")
-    public ResponseEntity<GlobalResponse<FileResponse>> storeProfile(
-        @ModelAttribute MultipartFile file    
+    public ResponseEntity<GlobalRes<FileRes>> storeProfile(
+        @ModelAttribute MultipartFile file
     ) {
-        return ResponseEntity.status(200).body(
-            GlobalResponse.<FileResponse>builder()
-                .code("00")
-                .message("파일 저장 성공")
-                .data(fileService.storeProfile(file))
-                .build()
-        );
+       return ResponseEntity.status(200).body(
+           GlobalRes.<FileRes>builder()
+               .code("00")
+               .message("파일 저장 성공")
+               .data(fileService.storeProfile(file))
+               .build()
+       );
     }
 
     @PostMapping("/files/posts")
-    public ResponseEntity<GlobalResponse<FileResponse>> storePosts(
+    public ResponseEntity<GlobalRes<FileRes>> storePosts(
         @ModelAttribute MultipartFile file
     ) {
         return ResponseEntity.status(200).body(
-            GlobalResponse.<FileResponse>builder()
+            GlobalRes.<FileRes>builder()
                 .code("00")
                 .message("파일 저장 성공")
                 .data(fileService.storePosts(file))

@@ -6,7 +6,7 @@ import java.util.List;
 
 @ConfigurationProperties(prefix = "cors")
 public record CorsConfig(
-    List<String> allowedOrigins,
-    Long maxAge
+    List<String> allowedOrigins
+    ,Long maxAge
 ) {
 }

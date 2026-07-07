@@ -4,11 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum RolePolicy {
-    NORMAL("Normal"),
-    SUPER("Super");
-    
+    NORMAL("NORMAL")
+    ,SUPER("SUPER");
+
     private final String role;
-    
+
     RolePolicy(String role) {
         this.role = role;
     }
