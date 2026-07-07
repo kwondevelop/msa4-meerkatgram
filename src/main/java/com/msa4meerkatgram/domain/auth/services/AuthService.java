@@ -1,172 +1,154 @@
-package com.msa4meerkatgram.domain.auth.services;
+ package com.msa4meerkatgram.domain.auth.services;
 
-import com.msa4meerkatgram.domain.auth.mapper.AuthMapper;
-import com.msa4meerkatgram.domain.auth.requests.LoginReq;
-import com.msa4meerkatgram.domain.auth.requests.RegistrationReq;
-import com.msa4meerkatgram.domain.auth.responses.AuthRes;
-import com.msa4meerkatgram.domain.post.mapper.PostMapper;
-import com.msa4meerkatgram.domain.user.entities.UserMybatis;
-import com.msa4meerkatgram.domain.user.mapper.UserMapper;
-import com.msa4meerkatgram.domain.user.responses.UserRes;
-import com.msa4meerkatgram.global.errors.custom.DuplicatedRecordException;
-import com.msa4meerkatgram.global.errors.custom.InvalidTokenException;
-import com.msa4meerkatgram.global.errors.custom.NotRegisteredException;
-import com.msa4meerkatgram.global.security.constant.ProviderPolicy;
-import com.msa4meerkatgram.global.security.constant.RolePolicy;
-import com.msa4meerkatgram.global.security.cookie.CookieManager;
-import com.msa4meerkatgram.global.security.jwt.JwtConfig;
-import com.msa4meerkatgram.global.security.jwt.JwtProvider;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+ import com.msa4meerkatgram.domain.auth.repositories.AuthRepository;
+ import com.msa4meerkatgram.domain.auth.requests.LoginReq;
+ import com.msa4meerkatgram.domain.auth.requests.RegistrationReq;
+ import com.msa4meerkatgram.domain.auth.responses.AuthRes;
+ import com.msa4meerkatgram.domain.post.repositories.PostRepository;
+ import com.msa4meerkatgram.domain.user.entities.User;
+ import com.msa4meerkatgram.domain.user.repositories.UserRepository;
+ import com.msa4meerkatgram.domain.user.responses.UserRes;
+ import com.msa4meerkatgram.domain.user.responses.UserWithPostCountRes;
+ import com.msa4meerkatgram.global.errors.custom.DuplicatedRecordException;
+ import com.msa4meerkatgram.global.errors.custom.InvalidTokenException;
+ import com.msa4meerkatgram.global.errors.custom.NotRegisteredException;
+ import com.msa4meerkatgram.global.security.constant.ProviderPolicy;
+ import com.msa4meerkatgram.global.security.constant.RolePolicy;
+ import com.msa4meerkatgram.global.security.cookie.CookieManager;
+ import com.msa4meerkatgram.global.security.jwt.JwtConfig;
+ import com.msa4meerkatgram.global.security.jwt.JwtProvider;
+ import jakarta.servlet.http.HttpServletRequest;
+ import jakarta.servlet.http.HttpServletResponse;
+ import lombok.RequiredArgsConstructor;
+ import org.springframework.security.crypto.password.PasswordEncoder;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+ import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
-public class AuthService {
-    private final UserMapper userMapper;
-    private final JwtProvider jwtProvider;
-    private final AuthMapper authMapper;
-    private final CookieManager cookieManager;
-    private final JwtConfig jwtConfig;
-    private final PasswordEncoder passwordEncoder;
-    private final PostMapper postMapper;
+ @Service
+ @RequiredArgsConstructor
+ public class AuthService {
+     private final JwtProvider jwtProvider;
+     private final CookieManager cookieManager;
+     private final JwtConfig jwtConfig;
+     private final PasswordEncoder passwordEncoder;
+     private final AuthRepository authRepository;
+     private final PostRepository postRepository;
+     private final UserRepository userRepository;
 
-    public AuthRes login(HttpServletResponse response, LoginReq loginReq) {
-        // user정보 획득
-        UserMybatis user = userMapper.findByEmail(loginReq.email());
+     @Transactional(rollbackFor = Exception.class)
+     public AuthRes login(HttpServletResponse response, LoginReq loginReq) {
+         // 유저정보 획득
+         User user = authRepository.findByEmail(loginReq.email())
+                 .orElseThrow(() -> new NotRegisteredException("아이디와 비밀번호를 확인해주세요."));
 
-        // user 가입 여부 확인
-        if(user == null) {
-            throw new NotRegisteredException("아이디와 비밀번호를 확인해주세요");
-        }
+         // 비밀번호 체크
+         if(!passwordEncoder.matches(loginReq.password(), user.getPassword())) {
+             throw new NotRegisteredException("아이디와 비밀번호를 확인해주세요.");
+         }
 
-        // 비밀번호 체크
-        if(!passwordEncoder.matches(loginReq.password(), user.getPassword())) {
-            throw new NotRegisteredException("아이디와 비밀번호를 확인해주세요");
-        }
-        
-        // Security 설정이 안 돼서 잠시 건너뜀
+         return this.generateAuthentication(response, user);
+     }
 
-        return this.generateAuthentication(response, user);
-    }
+     @Transactional(rollbackFor = Exception.class)
+     public AuthRes reissue(HttpServletRequest request, HttpServletResponse response) {
+         // 리프래시 토큰 획득
+//         Optional<String> refreshTokenOptional = jwtProvider.extractRefreshToken(request);
+//
+//         if(refreshTokenOptional.isEmpty()) {
+//             throw new InvalidTokenException("토큰이 없습니다.");
+//         }
+//         String extractRefreshToken = refreshTokenOptional.get();
 
-    // reissue
-    public AuthRes reissue(HttpServletRequest request, HttpServletResponse response) {
-        // 리프레시 토큰 획득
-        Optional<String> refreshTokenOptional = jwtProvider.extractRefreshToken(request);
-        if(refreshTokenOptional.isEmpty()) {
-            throw new InvalidTokenException("토큰이 없습니다.");
-        }
-        // 리프레시 토큰 받아옴
-        String extractRefreshToken = refreshTokenOptional.get();
+         String extractRefreshToken = jwtProvider.extractRefreshToken(request)
+                 .orElseThrow(() -> new InvalidTokenException("토큰이 없습니다."));
 
-        // 우리가 가져 온 서브젝트(String타입)를 롱타입으로 바꿈
-        // 필요한 유저 아이디 추출
-        long id = Long.parseLong(jwtProvider.extractClaims(extractRefreshToken).getSubject());
+         long id = Long.parseLong(jwtProvider.extractClaims(extractRefreshToken).getSubject());
 
-        // 유저 획득
-        UserMybatis user = userMapper.findByPk(id);
+         // 유저 획득
+         User user = authRepository.findById(id)
+                 .orElseThrow(() -> new InvalidTokenException("유효하지 않은 회원의 토큰입니다."));
 
-        // 유저 가입 여부 확인
-        if(user == null) {
-            throw new InvalidTokenException("유효하지 않은 회원의 토큰입니다.");
-        }
+         // 유저 가입 여부 확인 및 비로그인 상태 확인
+         if(user.getRefreshToken() == null) {
+             throw new InvalidTokenException("유효하지 않은 회원의 토큰입니다.");
+         }
 
-        // 리프레시 토큰 비교
-        if(!user.getRefreshToken().equals(extractRefreshToken)) {
-            throw new InvalidTokenException("토큰이 일치하지 않습니다.");
-        }
-        
-        return this.generateAuthentication(response, user);
-    }
-    
-    /**
-     * 엑세스토큰 및 리프레시토큰 생성 후, 리프레시 토큰 DB&Cookie 저장, AuthRes로 반환
-     * @param response
-     * @param user 유저 Entity
-     * @return AuthRes
-     */
-    private AuthRes generateAuthentication(HttpServletResponse response, UserMybatis user) {
-        // 작성 게시글 수 획득
-        long countPosts = postMapper.countPostsByUserId(user.getId());
-        
-        // 토큰 생성
-        String newAccessToken = jwtProvider.generateAccessToken(user);
-        String newRefreshToken = jwtProvider.generateRefreshToken(user);
+         // 리프래시 토큰 비교
+         if(!user.getRefreshToken().equals(extractRefreshToken)) {
+             throw new InvalidTokenException("토큰이 일치하지 않습니다.");
+         }
 
-        // 리프레시 토큰을 DB 저장
-        authMapper.updateRefreshToken(user.getId(), newRefreshToken);
+         return this.generateAuthentication(response, user);
+     }
 
-        // 리프레시 토큰을 Cookie에 저장
+     /**
+      * 액세스토큰 및 리프래시토큰 생성 후, 리프래시 토큰 DB&Cookie에 저장, AuthRes로 반환
+      * @param response HttpServletResponse
+      * @param user 유저 Entity
+      * @return AuthRes
+      */
+
+     private AuthRes generateAuthentication(HttpServletResponse response, User user) {
+         // 작성 게시글 수 획득
+         long countPosts = postRepository.countByUser(user);
+
+         // 토큰 생성
+         String newAccessToken = jwtProvider.generateAccessToken(user);
+         String newRefreshToken = jwtProvider.generateRefreshToken(user);
+
+         // 리프래시 토큰을 DB 저장
+         user.setRefreshToken(newRefreshToken);
+         authRepository.save(user);
+
+         // 리프래시 토큰을 Cookie에 저장
+         cookieManager.setCookie(
+             response
+             ,jwtConfig.refreshTokenCookieName()
+             ,newRefreshToken
+             ,jwtConfig.refreshTokenCookieExpiry()
+             ,jwtConfig.reissueUri()
+         );
+
+         // 리턴
+         return AuthRes.from(user, countPosts, newAccessToken);
+     }
+
+     @Transactional(rollbackFor = Exception.class)
+    public void logout(HttpServletResponse response, long id) {
+        // 유저 정보 획득
+        User user = authRepository.findById(id)
+                .orElseThrow(() -> new InvalidTokenException("유효하지 않은 회원의 토큰입니다."));
+
+        // DB에 저장한 리프래시 토큰 파기
+        user.setRefreshToken(null);
+        authRepository.save(user);
+
+        // Cookie에 저장한 리프래시 토큰 파기
         cookieManager.setCookie(
             response
             ,jwtConfig.refreshTokenCookieName()
-            ,newRefreshToken
-            ,jwtConfig.refreshTokenCookieExpiry()
-            ,jwtConfig.reissUri()
+            ,null
+            ,0
+            ,jwtConfig.reissueUri()
         );
+    }
 
-        // 리턴 처리 (컨트롤러에게 돌려줌)
-        // user 정보 그대로 리턴 하면 리프레시 토큰과 비밀번호가 다 보임
-        // 그래서 responseDTO를 하나만들것임
-        return AuthRes.builder()
-            .accessToken(newAccessToken)
-            .user(
-                UserRes.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .nick(user.getNick())
-                    .role(user.getRole())
-                    .profile(user.getProfile())
-                    .createdAt(user.getCreatedAt())
-                    .countPosts(countPosts)
-                    .build()
-            )
-            .build();
-    }
-    
-    public void logout(HttpServletResponse response, long id) {
-        // 유저 정보 획득
-        UserMybatis user = userMapper.findByPk(id);
-        
-        if(user == null) {
-            throw new InvalidTokenException("유효하지 않은 회원의 토큰입니다");
-        }
-        
-        // DB에 저장한 리프레시 토큰 파기
-        authMapper.updateRefreshToken(id, null);
-        
-        // Cookie에 저장한 리프레시 토큰 파기
-        cookieManager.setCookie(
-            response,
-            jwtConfig.refreshTokenCookieName(),
-            null,
-            0,
-            jwtConfig.reissUri()
-        );
-    }
-    
     @Transactional(rollbackFor = Exception.class)
     public void registration(RegistrationReq registrationReq) {
-        // 유저 정보 획득
-        UserMybatis user = userMapper.findByEmail(registrationReq.email());
-        
-        if(user != null) {
-            throw new DuplicatedRecordException("이미 가입된 회원입니다");
+        // 유저 가입 여부 확인 (exists 쿼리를 사용하면 대용량 환경에서 효율이 증가)
+        if(authRepository.existsByEmail(registrationReq.email())) {
+            throw new DuplicatedRecordException("이미 가입된 회원입니다.");
         }
 
-        UserMybatis newUser = new UserMybatis();
+        User newUser = new User();
         newUser.setEmail(registrationReq.email());
         newUser.setPassword(passwordEncoder.encode(registrationReq.password()));
         newUser.setNick(registrationReq.nick());
         newUser.setProfile(registrationReq.profile());
-        newUser.setProvider(ProviderPolicy.NONE.getProvider());
-        newUser.setRole(RolePolicy.NORMAL.getRole());
-        authMapper.create(newUser);
+        newUser.setProvider(ProviderPolicy.NONE);
+        newUser.setRole(RolePolicy.NORMAL);
+        authRepository.save(newUser);
     }
-}
+ }

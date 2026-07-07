@@ -19,26 +19,26 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class) // 엔티티의 이벤트 리스너 지정
 @Table(name = "users") // 테이블명 맵핑
 @SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
-@SQLRestriction("deleted_at IS NULL") // 엔티티의 조회 시 항상 특정 조건을 추가하도록 함
+@SQLRestriction("deleted_at IS NULL") // 엔티티의 조회 시 항상 특정 조건을 추가하도록 지정
 @Getter
 @Setter
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // PK 자동 생성 전략 설정
     @Column(name = "id", columnDefinition = "BIGINT UNSIGNED")
-    private long id;
+    private Long id;
 
     @Column(name = "email", unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "password", nullable = false )
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     @Column(name = "nick", nullable = false, length = 20)
     private String nick;
 
     @Column(name = "provider", nullable = false, length = 10)
-    @Enumerated(value = EnumType.STRING) // Enum을 어떤 데이터 형식으로 저장할 건지 설정
+    @Enumerated(value = EnumType.STRING) // Enum을 어떤 데이터형식으로 저장할 건지 설정
     @JdbcTypeCode(Types.VARCHAR)
     private ProviderPolicy provider = ProviderPolicy.NONE;
 
