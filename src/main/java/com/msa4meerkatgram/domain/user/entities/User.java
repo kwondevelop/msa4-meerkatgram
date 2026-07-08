@@ -1,5 +1,6 @@
 package com.msa4meerkatgram.domain.user.entities;
 
+import com.msa4meerkatgram.domain.post.entities.Post;
 import com.msa4meerkatgram.global.security.constant.ProviderPolicy;
 import com.msa4meerkatgram.global.security.constant.RolePolicy;
 import jakarta.persistence.*;
@@ -14,6 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Types;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity // 해당 클래스가 JPA 엔티티임을 선언
 @EntityListeners(AuditingEntityListener.class) // 엔티티의 이벤트 리스너 지정
@@ -63,4 +65,7 @@ public class User {
 
     @Column(name = "deleted_at", nullable = true)
     private LocalDateTime deletedAt;
+
+    // @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    // private List<Post> posts;
 }
