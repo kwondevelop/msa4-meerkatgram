@@ -7,13 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -58,16 +60,18 @@ public class GlobalExceptionHandler {
         return this.generateErrorResponse(CustomErrorCode.DUPLICATE_DATA_ERROR);
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<GlobalErrorRes> methodArgumentTypeMismatchHandle(MethodArgumentTypeMismatchException e) {
-        log.debug(CustomErrorCode.NOT_REGISTERED_ERROR.name(), e);
-        return this.generateErrorResponse(CustomErrorCode.NOT_REGISTERED_ERROR);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<GlobalErrorRes> methodArgumentNotValidHandle(MethodArgumentNotValidException e) {
         Map<String, String> errors = e.getBindingResult()
-        log.debug(CustomErrorCode.INVALID_PARAMETER_ERROR.name(), String.format("%s : 필드를 확인해 주세요.", e.getName()));
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                    FieldError::getField,
+                    fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "유효하지 않은 값",
+                    (existing, replacement) -> existing
+                ));
+
+        log.debug(CustomErrorCode.INVALID_PARAMETER_ERROR.name(), errors);
         return this.generateErrorResponse(CustomErrorCode.INVALID_PARAMETER_ERROR);
     }
 
