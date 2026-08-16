@@ -6,18 +6,16 @@
 
 > **Vue 3와 Spring Boot 기반의 사진 공유 소셜 미디어 플랫폼**
 
-![Project Preview](https://via.placeholder.com/800x400.png?text=Project+Preview+Image) <!-- 완성된 프로젝트의 대표 이미지를 여기에 넣어주세요 -->
-
 ## 1. 프로젝트 소개 (Project Overview)
-**Meerkatgram**은 사용자들끼리 일상의 사진을 공유하고 소통할 수 있는 인스타그램 형태의 SNS 플랫폼입니다. 
+**Meerkatgram**은 인스타그램을 참고하여 제작한 SNS 서비스입니다. 
 RESTful API 아키텍처를 기반으로 백엔드와 프론트엔드가 분리된 구조를 가지며, JWT 기반의 안전한 인증 시스템과 대용량 이미지 파일 처리 기능을 구현했습니다.
 
-* **개발 기간:** 202X.XX ~ 202X.XX (기간을 입력해주세요)
-* **개발 인원:** 1인 (혹은 팀원 수를 입력해주세요)
+* **개발 기간** : 2026.05.04 ~ 2026.06.05
+* **개발 인원** : 1인
 
 ---
 
-## 2. 기술 스택 (Tech Stack)
+## 2. 기술 스택
 
 ### 🎨 Frontend
 * **Framework:** Vue 3 (Composition API)
